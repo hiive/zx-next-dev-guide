@@ -30,18 +30,18 @@ In Interrupt Mode 1, an interrupt handler is expected on address \MemAddr{0038} 
 Let's see how to do this with an example. We will use the interrupt routine to update an 8-bit counter. The example uses {\tt sjasmplus} directives to establish paging. If you are using a different assembler, you may need to change! First, let's prepare the groundwork - declare the variable and main part of the program:
 
 \begin{tcblisting}{}
-	DEVICE ZXSPECTRUMNEXT ; this is Next program - important for paging setup!
+    DEVICE ZXSPECTRUMNEXT ; this is Next program - important for paging setup!
 
-	ORG &8000              ; set PC to &8000
+    ORG &8000              ; set PC to &8000
 Start:
-	DI                     ; disable interrupts while we page out ROM
-	NEXTREG &50, 28        ; page out ROM in slot 0 (&000-&1FFF) with page 28
-	IM 1                   ; enable Interrupt Mode 1
-	EI                     ; enable interrupts
+    DI                     ; disable interrupts while we page out ROM
+    NEXTREG &50, 28        ; page out ROM in slot 0 (&000-&1FFF) with page 28
+    IM 1                   ; enable Interrupt Mode 1
+    EI                     ; enable interrupts
 
 .loop:
-	JP .loop               ; infinite loop
-	RET                    ; this is never reached...
+    JP .loop               ; infinite loop
+    RET                    ; this is never reached...
 
 counter: DB 0              ; counter variable
 \end{tcblisting}
@@ -55,15 +55,15 @@ The remaining part is simply an infinite loop to prevent the program from exitin
 The interrupt subroutine is expected at \MemAddr{0038}. There are several ways to achieve this with {\tt sjasmplus}. I opted for explicit slot/bank technique so we're in control of the paging:
 
 \begin{tcblisting}{}
-	SLOT 6             ; activate slot 6
-	PAGE 28            ; load page 28K to active slot
-	ORG &C038          ; set PC to &C038
+    SLOT 6             ; activate slot 6
+    PAGE 28            ; load page 28K to active slot
+    ORG &C038          ; set PC to &C038
 
 InterruptHandler:
-	LD HL, counter     ; load address of counter var
-	INC (HL)           ; increment it
-	EI                 ; enable interrupts
-	RETI               ; return from interrupt
+    LD HL, counter     ; load address of counter var
+    INC (HL)           ; increment it
+    EI                 ; enable interrupts
+    RETI               ; return from interrupt
 \end{tcblisting}
 
 This is where the previously mentioned {\tt DEVICE} directive comes to play - {\tt sjasmplus} decides slot and bank configuration based on it. {\tt ZXSPECTRUMNEXT} assumes 8K slot and bank size. Lines 1-3 are the key to ensure our interrupt handler will be present on \MemAddr{0038}:
@@ -155,7 +155,7 @@ Once Interrupt Mode 2 is activated, mode 1 handler at \MemAddr{0038} isn't calle
 	\begin{ElegantTable}{|C{3cm}|C{3cm}|}
 		\ElegantHeader{\EH{15-8} & \EH{7-0}}
 
-		\rowcolor{white} % not sure why header colour is spilled over the whole table in this instance!?
+		\rowcolor{PrintableBackground} % not sure why header colour is spilled over the whole table in this instance!?
 		{\tt I} register & Data Bus \\
 	\end{ElegantTable}
 	}
@@ -166,39 +166,39 @@ Once Interrupt Mode 2 is activated, mode 1 handler at \MemAddr{0038} isn't calle
 Phew, a lot of words and concepts to grasp. But it's simpler than it sounds - let's rewrite the IM1 example, but this time with IM2. The main program first:
 
 \begin{tcblisting}{}
-	ORG &8000              ; set PC to &8000
+    ORG &8000              ; set PC to &8000
 Start:
-	DI                     ; disable interrupts while we setup interrupts
-	CALL SetupInterruptVectors
-	IM 2                   ; enable Interrupt Mode 2
-	EI                     ; enable interrupts
-	|(the rest is the same as in IM1 example)|
+    DI                     ; disable interrupts while we setup interrupts
+    CALL SetupInterruptVectors
+    IM 2                   ; enable Interrupt Mode 2
+    EI                     ; enable interrupts
+    |(the rest is the same as in IM1 example)|
 \end{tcblisting}
 
 Almost the same except for the {\tt NEXTREG} replaced with {\tt SetupInterruptVectors} subroutine call that initializes vector table:
 
 \begin{tcblisting}{}
 SetupInterruptVectors:
-	LD DE, InterruptHandler        ; prepare pointer to IM2 routine
-	LD HL, InterruptVectorTable   ; prepare pointer to vector table
-	LD B, 128                      ; we need to fill 128 addresses
+    LD DE, InterruptHandler        ; prepare pointer to IM2 routine
+    LD HL, InterruptVectorTable   ; prepare pointer to vector table
+    LD B, 128                      ; we need to fill 128 addresses
 .loop:
-	LD (HL), E                     ; copy low byte
-	INC HL                         ; increment vector table pointer
-	LD (HL), D	                   ; copy high byte
-	INC HL                         ; increment vector table pointer
-	DJNZ .loop                     ; repeat until the end of the vector table
-	LD A, InterruptVectorTable >> 8
-	LD I, A                        ; I now holds high byte of vector table
-	RET
+    LD (HL), E                     ; copy low byte
+    INC HL                         ; increment vector table pointer
+    LD (HL), D                     ; copy high byte
+    INC HL                         ; increment vector table pointer
+    DJNZ .loop                     ; repeat until the end of the vector table
+    LD A, InterruptVectorTable >> 8
+    LD I, A                        ; I now holds high byte of vector table
+    RET
 \end{tcblisting}
 
 The subroutine fills in all 128 entries of the vector table with the address of our actual interrupt routine. The only remaining piece is the declaration of the vector table itself; I chose {\tt .ALIGN 256} directive that fills in bytes until 256-byte boundary is reached:
 
 \begin{tcblisting}{}
-	.ALIGN 256                     ; section must start on 256-byte boundary &xx00
+    .ALIGN 256                     ; section must start on 256-byte boundary &xx00
 InterruptVectorTable:              ; I register should therefore have value &xx
-	DEFS 128*2                     ; 128 16-bit vectors	
+    DEFS 128*2                     ; 128 16-bit vectors	
 \end{tcblisting}
 
 The interrupt handler itself can reside anywhere in the memory. Code-wise it's the same as for IM1 mode previously.
@@ -227,17 +227,17 @@ In addition to regular IM2, Next also supports a ``Hardware IM2'' mode. This mod
 
 % note: Band will be converted to & and Bor to | when rendering...
 \begin{tcblisting}{}
-	DI                             ; disable interrupts
-	NEXTREG &C0, (InterruptVectorTable Band %11100000) Bor %00000001
-	NEXTREG &C4, %10000001         ; enable expansion bus INT and ULA interrupts
-	NEXTREG &C5, %00000000         ; disable all CTC channel interrupts
-	NEXTREG &C6, %00000000         ; disable UART interrupts
-	
-	LD A, InterruptVectorTable >> 8
-	LD I, A                        ; I now holds high byte of vector table
+    DI                             ; disable interrupts
+    NEXTREG &C0, (InterruptVectorTable Band %11100000) Bor %00000001
+    NEXTREG &C4, %10000001         ; enable expansion bus INT and ULA interrupts
+    NEXTREG &C5, %00000000         ; disable all CTC channel interrupts
+    NEXTREG &C6, %00000000         ; disable UART interrupts
+    
+    LD A, InterruptVectorTable >> 8
+    LD I, A                        ; I now holds high byte of vector table
 
-	IM 2                           ; enable HW Interrupt Mode 2
-	EI                             ; enable interrupts
+    IM 2                           ; enable HW Interrupt Mode 2
+    EI                             ; enable interrupts
 \end{tcblisting}
 
 Line 3 is where hardware IM2 mode is established. The crucial part is \PortTextXRef{C0} register: firstly, we are supplying the top 3 bits of LSB of the vector table to bits 7-5, and secondly, we enable IM2 mode by setting bit 0.
@@ -249,24 +249,24 @@ Lines 8-12 are the same as with legacy IM2 mode - we assign the LSB of the vecto
 Interrupt vectors table is quite a bit different (in a good way though):
 
 \begin{tcblisting}{}
-	.ALIGN 32
+    .ALIGN 32
 InterruptVectorTable:
-	DW InterruptHandler        ; 0 = line interrupt (highest priority)
-	DW InterruptHandler        ; 1 = UART0 Rx
-	DW InterruptHandler        ; 2 = UART1 Rx
-	DW InterruptHandler        ; 3 = CTC channel 0
-	DW InterruptHandler        ; 4 = CTC channel 1
-	DW InterruptHandler        ; 5 = CTC channel 2
-	DW InterruptHandler        ; 6 = CTC channel 3
-	DW InterruptHandler        ; 7 = CTC channel 4
-	DW InterruptHandler        ; 8 = CTC channel 5
-	DW InterruptHandler        ; 9 = CTC channel 6
-	DW InterruptHandler        ; 10 = CTC channel 7
-	DW InterruptHandlerULA     ; 11 = ULA
-	DW InterruptHandler        ; 12 = UART0 Tx
-	DW InterruptHandler        ; 13 = UART1 Tx (lowest priority)
-	DW InterruptHandler
-	DW InterruptHandler
+    DW InterruptHandler        ; 0 = line interrupt (highest priority)
+    DW InterruptHandler        ; 1 = UART0 Rx
+    DW InterruptHandler        ; 2 = UART1 Rx
+    DW InterruptHandler        ; 3 = CTC channel 0
+    DW InterruptHandler        ; 4 = CTC channel 1
+    DW InterruptHandler        ; 5 = CTC channel 2
+    DW InterruptHandler        ; 6 = CTC channel 3
+    DW InterruptHandler        ; 7 = CTC channel 4
+    DW InterruptHandler        ; 8 = CTC channel 5
+    DW InterruptHandler        ; 9 = CTC channel 6
+    DW InterruptHandler        ; 10 = CTC channel 7
+    DW InterruptHandlerULA     ; 11 = ULA
+    DW InterruptHandler        ; 12 = UART0 Tx
+    DW InterruptHandler        ; 13 = UART1 Tx (lowest priority)
+    DW InterruptHandler
+    DW InterruptHandler
 \end{tcblisting}
 
 As you can see, each interrupter gets its own vector. In the above example, all except ULA are pointing to the same interrupt routine. Since there are only a handful, we can use a much clearer declaration with {\tt DW <routine address>}. This way we don't need any initialization code that would fill in the routine address as we used with legacy IM2 mode.

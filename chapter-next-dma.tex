@@ -239,7 +239,7 @@ DMA programs can be up to 256 bytes long (but the data being transferred can be 
 			% Bit 6 description
 			\begin{pgfonlayer}{above}
 				% we only need fill on top of text to avoid lines drawn on top. Coordinates were set via trial & error, so any change in data will also require re-positioning...
-				\node[fill=white, opacity=0.95, minimum width=3em, minimum height=5.7em] at(2.5,-2.4) {};
+				\node[fill=PrintableBackground, opacity=0.95, minimum width=3em, minimum height=5.7em] at(2.5,-2.4) {};
 
 				\DMABitDescTitle{6}{DMA Mode}
 				\DMABitDescItem{6}{\DMATwoBits{0}{0}}{Do not use!}
@@ -426,14 +426,14 @@ DMA programs can be up to 256 bytes long (but the data being transferred can be 
 If bit 3 of the base register byte is set, then LSB of port A starting address is expected as the first parameter after the base. If bit 4 is set, then MSB byte is expected. If both bits are set, then LSB needs to be written first, followed by MSB. This is in fact the most common setup because port A starting address is required for each DMA operation. And since little-endian format is used, the value forming the 16-bit starting address of port A can be written directly. For example:
 
 \begin{tcblisting}{}
-	DW &253B          ; Port A starts at &253B
+    DW &253B          ; Port A starts at &253B
 \end{tcblisting}
 \vspace*{-1ex}
 
 Or, if we have a label that points to the start of the memory:
 
 \begin{tcblisting}{}
-	DW StartLabel     ; Port A starts on memory at this label
+    DW StartLabel     ; Port A starts on memory at this label
 \end{tcblisting}
 \vspace*{-1ex}
 
@@ -450,9 +450,9 @@ Setting bit 5 of the base register byte is associated with LSB of transfer lengt
 Since all parameters in \DMARegName{WR0} are important for DMA transfer, they are typically always included. The configuration would most often look something like this:
 
 \begin{tcblisting}{}
-	DB %01111101      ; WR0 - append length and port A address, A->B
-	DW &253B          ; Port A starts at &253B
-	DW 1500           ; We will transfer 1500 bytes
+    DB %01111101      ; WR0 - append length and port A address, A->B
+    DW &253B          ; Port A starts at &253B
+    DW 1500           ; We will transfer 1500 bytes
 \end{tcblisting}
 
 Usually, the address and length are provided dynamically, and frequently ``self-modifying code'' approach is used to fill this data on the fly. We'll discuss this in the example section later on.
@@ -774,7 +774,7 @@ Another register where zxnDMA uses only a small portion of functionality from Z8
 	% Bit 6 description
 	\begin{pgfonlayer}{above}
 		% we only need fill on top of text to avoid lines drawn on top. Coordinates were set via trial & error, so any change in data will also require re-positioning...
-		\node[fill=white, opacity=0.95, minimum width=3em, minimum height=5.2em] at(2.5,-3.1) {};
+		\node[fill=PrintableBackground, opacity=0.95, minimum width=3em, minimum height=5.2em] at(2.5,-3.1) {};
 
 		\DMABitDescTitle[-3ex]{6}{DMA Mode}[2.5em]
 		\DMABitDescItem{6}{\DMATwoBits{0}{0}}{Do not use! {\small (Behaves like continuous mode)}}
@@ -823,7 +823,7 @@ Another register where zxnDMA uses only a small portion of functionality from Z8
 This works exactly the same as port A starting address in bits 4-3 of \DMARegName{WR0}, but for port B. Bit 3 of base register enables LSB and bit 4 MSB of the port B address. If both are set, then LSB is written before MSB. As port B address is also required for each DMA operation, both bytes are usually provided. And because the 16-bit value uses little-endian notation, it can be written directly. For example:
 
 \begin{tcblisting}{}
-	DW &253B          ; Port B starts at &253B
+DW &253B          ; Port B starts at &253B
 \end{tcblisting}
 \vspace*{-1ex}
 
@@ -1032,30 +1032,30 @@ Source is at memory address \MemAddr{C000}, destination \MemAddr{D000}, size 204
 
 \begin{tcblisting}{}
 CopyMemory:
-	LD HL, .dmaProgram     ; HL = pointer to DMA program
-	LD B, .dmaProgramSize; B = size of the code
-	LD C, &6B              ; C = &6B (zxnDMA port)
-	OTIR                   ; upload DMA program
-	RET
+    LD HL, .dmaProgram     ; HL = pointer to DMA program
+    LD B, .dmaProgramSize; B = size of the code
+    LD C, &6B              ; C = &6B (zxnDMA port)
+    OTIR                   ; upload DMA program
+    RET
 
 .dmaProgram:
-	DB %1'00000'11         ; WR6 - disable DMA
+    DB %1'00000'11         ; WR6 - disable DMA
 
-	DB %0'11'11'1'01       ; WR0 - append length + port A address, A->B
-	DW &C000               ; WR0 par 1Band2 - port A start address
-	DW 2048                ; WR0 par 3Band4 - transfer length
+    DB %0'11'11'1'01       ; WR0 - append length + port A address, A->B
+    DW &C000               ; WR0 par 1Band2 - port A start address
+    DW 2048                ; WR0 par 3Band4 - transfer length
 
-	DB %0'0'01'0'100       ; WR1 - A incr., A=memory
+    DB %0'0'01'0'100       ; WR1 - A incr., A=memory
 
-	DB %0'0'01'0'000       ; WR2 - B incr., B=memory
+    DB %0'0'01'0'000       ; WR2 - B incr., B=memory
 
-	DB %1'01'0'11'01       ; WR4 - continuous, append port B addres
-	DW &D000               ; WR4 par 1Band2 - port B address
+    DB %1'01'0'11'01       ; WR4 - continuous, append port B address
+    DW &D000               ; WR4 par 1Band2 - port B address
 
-	DB %10'0'0'0010        ; WR5 - stop on end of block, CE only
+    DB %10'0'0'0010        ; WR5 - stop on end of block, CE only
 
-	DB %1'10011'11         ; WR6 - load addresses into DMA counters
-	DB %1'00001'11         ; WR6 - enable DMA
+    DB %1'10011'11         ; WR6 - load addresses into DMA counters
+    DB %1'00001'11         ; WR6 - enable DMA
 .dmaProgramSize = &-.dmaProgram
 \end{tcblisting}
 
@@ -1083,11 +1083,11 @@ The program itself, lines 9-25, should be self-explanatory. But we'll go through
 	Note: we could also use {\tt DB} to write each byte separately. It emphasizes the fact two bytes are written, but obfuscates the address. Regardless, the program would then look like this:
 
 		\begin{tcblisting}{listing options={style=CodeStyle,firstnumber=12}}
-	DB &00
-	DB &C0    ; &C000
-	DB &00
-	DB &08    ; &0800 (=2048)
-		\end{tcblisting}
+    DB &00
+    DB &C0    ; &C000
+    DB &00
+    DB &08    ; &0800 (=2048)
+        \end{tcblisting}
 
 	\item Line 15 specifies the configuration for port A with \DMARegName{WR1} and line 17 for port B with \DMARegName{WR2}. Both use the same:
 	
@@ -1126,30 +1126,30 @@ Source is at memory address \MemAddr{9000}, destination is port \MemAddr{5B}, si
 
 \begin{tcblisting}{}
 CopyMemory:
-	LD HL, .dmaProgram     ; HL = pointer to DMA program
-	LD B, .dmaProgramSize; B = size of the code
-	LD C, &6B              ; C = &6B (zxnDMA port)
-	OTIR                   ; upload DMA program
-	RET
+    LD HL, .dmaProgram     ; HL = pointer to DMA program
+    LD B, .dmaProgramSize; B = size of the code
+    LD C, &6B              ; C = &6B (zxnDMA port)
+    OTIR                   ; upload DMA program
+    RET
 
 .dmaProgram:
-	DB %1'00000'11         ; WR6 - disable DMA
+    DB %1'00000'11         ; WR6 - disable DMA
 
-	DB %0'11'11'1'01       ; WR0 - append length + port A address, A->B
-	DW &9000               ; WR0 par 1Band2 - port A start address
-	DW 16384               ; WR0 par 3Band4 - transfer length
+    DB %0'11'11'1'01       ; WR0 - append length + port A address, A->B
+    DW &9000               ; WR0 par 1Band2 - port A start address
+    DW 16384               ; WR0 par 3Band4 - transfer length
 
-	DB %0'0'01'0'100       ; WR1 - A incr., A=memory
+    DB %0'0'01'0'100       ; WR1 - A incr., A=memory
 
-	DB %0'0'10'1'000       ; WR2 - B fixed, B=I/O
+    DB %0'0'10'1'000       ; WR2 - B fixed, B=I/O
 
-	DB %1'01'0'11'01       ; WR4 - continuous, append port B addres
-	DW &005B               ; WR4 par 1Band2 - port B address
+    DB %1'01'0'11'01       ; WR4 - continuous, append port B addres
+    DW &005B               ; WR4 par 1Band2 - port B address
 
-	DB %10'0'0'0010        ; WR5 - stop on end of block, CE only
+    DB %10'0'0'0010        ; WR5 - stop on end of block, CE only
 
-	DB %1'10011'11         ; WR6 - load addresses into DMA counters
-	DB %1'00001'11         ; WR6 - enable DMA
+    DB %1'10011'11         ; WR6 - load addresses into DMA counters
+    DB %1'00001'11         ; WR6 - enable DMA
 .dmaProgramSize = &-.dmaProgram
 \end{tcblisting}
 
@@ -1175,35 +1175,35 @@ The routine gets the address of the source memory through {\tt HL} and length in
 
 \begin{tcblisting}{}
 CopyMemory:
-	LD (.dmaPortAAddress), HL      ; modify program with actual address
-	LD (.dmaTransferLength), BC  ; modify program with actual length
+    LD (.dmaPortAAddress), HL      ; modify program with actual address
+    LD (.dmaTransferLength), BC  ; modify program with actual length
 
-	LD HL, .dmaProgram     ; HL = pointer to DMA program
-	LD B, .dmaProgramSize; B = size of the code
-	LD C, &6B              ; C = &6B (zxnDMA port)
-	OTIR                   ; upload DMA program
-	RET
+    LD HL, .dmaProgram     ; HL = pointer to DMA program
+    LD B, .dmaProgramSize; B = size of the code
+    LD C, &6B              ; C = &6B (zxnDMA port)
+    OTIR                   ; upload DMA program
+    RET
 
 .dmaProgram:
-	DB %1'00000'11         ; WR6 - disable DMA
+    DB %1'00000'11         ; WR6 - disable DMA
 
-	DB %0'11'11'1'01       ; WR0 - append length + port A address, A->B
+    DB %0'11'11'1'01       ; WR0 - append length + port A address, A->B
 .dmaPortAAddress:
-	DW 0                   ; WR0 par 1Band2 - port A start address
+    DW 0                   ; WR0 par 1Band2 - port A start address
 .dmaTransferLength:
-	DW 0                   ; WR0 par 3Band4 - transfer length
+    DW 0                   ; WR0 par 3Band4 - transfer length
 
-	DB %0'0'01'0'100       ; WR1 - A incr., A=memory
+    DB %0'0'01'0'100       ; WR1 - A incr., A=memory
 
-	DB %0'0'10'1'000       ; WR2 - B fixed, B=I/O
+    DB %0'0'10'1'000       ; WR2 - B fixed, B=I/O
 
-	DB %1'01'0'11'01       ; WR4 - continuous, append port B address
-	DW &005B               ; WR4 par 1Band2 - port B address
+    DB %1'01'0'11'01       ; WR4 - continuous, append port B address
+    DW &005B               ; WR4 par 1Band2 - port B address
 
-	DB %10'0'0'0010        ; WR5 - stop on end of block, CE only
+    DB %10'0'0'0010        ; WR5 - stop on end of block, CE only
 
-	DB %1'10011'11         ; WR6 - load addresses into DMA counters
-	DB %1'00001'11         ; WR6 - enable DMA
+    DB %1'10011'11         ; WR6 - load addresses into DMA counters
+    DB %1'00001'11         ; WR6 - enable DMA
 .dmaProgramSize = &-.dmaProgram
 \end{tcblisting}
 

@@ -79,7 +79,7 @@
 }
 
 % renders "work in progress" text using current font and size.
-\newcommand{\WorkInProgress}{\ifdefined\isWIP\color{red}\textbf{WORK IN PROGRESS}\fi}
+\newcommand{\WorkInProgress}{\ifdefined\isWIP\color{red}\textbf{}\fi}
 
 % renders "work in progress" sign for use on "full screen" pages; uses \Huge font by default, but that can be changed with optional parameter
 \newcommand{\WorkInProgressFullScreen}[1][\normalsize]{
@@ -107,11 +107,12 @@
 % ▒█░░░ ▒█░░▒█ ▒█░░░ ▒█░░▒█ ▒█░▒█ ▒█▄▄▀ ░▀▀▀▄▄ 
 % ▒█▄▄█ ▒█▄▄▄█ ▒█▄▄█ ▒█▄▄▄█ ░▀▄▄▀ ▒█░▒█ ▒█▄▄▄█
 
-\definecolor{PrintableLightGray}{rgb}{0.85, 0.85, 0.85}
-\definecolor{PrintableLightMidGray}{rgb}{0.7675, 0.7675, 0.7675}
-\definecolor{PrintableMidGray}{rgb}{0.675, 0.675, 0.675}
+\definecolor{PrintableLightGray}{rgb}{0.15, 0.15, 0.15}
+\definecolor{PrintableLightMidGray}{rgb}{0.2325, 0.2325, 0.2325}
+\definecolor{PrintableMidGray}{rgb}{0.325, 0.325, 0.325}
 \definecolor{PrintableDarkGray}{rgb}{0.5, 0.5, 0.5}
-
+\definecolor{PrintableText}{rgb}{1.0, 1.0, 1.0}
+\definecolor{PrintableBackground}{rgb}{0.0, 0.0, 0.0}
 
 % ▒█▀▀▀█ ▒█░▒█ ▒█▀▀▀█ ▒█▀▀█ ▀▀█▀▀ ▒█░▒█ ░█▀▀█ ▒█▄░▒█ ▒█▀▀▄ ▒█▀▀▀█ 
 % ░▀▀▀▄▄ ▒█▀▀█ ▒█░░▒█ ▒█▄▄▀ ░▒█░░ ▒█▀▀█ ▒█▄▄█ ▒█▒█▒█ ▒█░▒█ ░▀▀▀▄▄ 
@@ -221,9 +222,11 @@
 	before skip=2ex,
 	after skip=3ex,
 	colback=PrintableLightGray,
+	colupper=PrintableText,
 	colframe=PrintableLightGray,
 	enhanced,			% only use rounded corners on top and bottom part, not between page breaks
 	breakable,			% allow breaking tcolorbox to multiple pages
 	listing only,		% only show listing
 	listing options={style=CodeStyle},
 }
+

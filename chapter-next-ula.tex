@@ -122,20 +122,20 @@ As you can see, X is straightforward; we simply need to take the upper 5 bits an
 Furthermore; each instruction only uses 8 t-states, which is far less than the corresponding Z80 assembly program would require. Somewhat naive program for drawing vertical line write from the pixel at coordinate (16,32) to (16,50):
 
 \begin{tcblisting}{}
-	LD DE, &1020      ; Y=16, X=32
-	PIXELAD           ; HL=address of pixel (E,D)
+    LD DE, &1020      ; Y=16, X=32
+    PIXELAD           ; HL=address of pixel (E,D)
 loop:
-	SETAE             ; A=pixel mask
-	OR (HL)           ; we'll write the pixel
-	LD (HL), A        ; actually write the pixel
-	
-	INC D             ; Y=Y+1
-	LD A, D           ; copy new Y coordinate to A
-	CP 51             ; are we at 51 already?
-	RET NC            ; yes, return
+    SETAE             ; A=pixel mask
+    OR (HL)           ; we'll write the pixel
+    LD (HL), A        ; actually write the pixel
+    
+    INC D             ; Y=Y+1
+    LD A, D           ; copy new Y coordinate to A
+    CP 51             ; are we at 51 already?
+    RET NC            ; yes, return
 
-	PIXELDN           ; no, update HL to next line
-	JR loop           ; continue with next pixel
+    PIXELDN           ; no, update HL to next line
+    JR loop           ; continue with next pixel
 \end{tcblisting}
 
 Note: because we're updating our Y coordinate in {\tt D} register within the loop, we could also use {\tt PIXELAD} instead of {\tt PIXELDN} in line 13. Both instructions require 8 T states for execution, so there's no difference performance-wise.
@@ -143,11 +143,11 @@ Note: because we're updating our Y coordinate in {\tt D} register within the loo
 If we instead wanted to check if the pixel at the given coordinate is set or not, we would use {\tt AND (HL)} instead of {\tt OR (HL)}. For example:
 
 \begin{tcblisting}{}
-	LD DE, &1020      ; Y=16, X=32
-	PIXELAD           ; HL=address of pixel (E,D)
-	SETAE             ; A=pixel mask
-	AND (HL)          ; we'll read the pixel
-	RET Z             ; exit if pixel is not set
+    LD DE, &1020      ; Y=16, X=32
+    PIXELAD           ; HL=address of pixel (E,D)
+    SETAE             ; A=pixel mask
+    AND (HL)          ; we'll read the pixel
+    RET Z             ; exit if pixel is not set
 \end{tcblisting}
 
 
@@ -203,8 +203,8 @@ Note: on Next, default ULA colours can be changed, see Palette chapter \XRef{zx_
 Next inherits Spectrum border colour handling through \PortTextXRef{xxFEWrite}. The bottom 3 bits are used to specify one of 8 possible colours (see table on the previous page for full list). Example:
 
 \begin{tcblisting}{}
-	LD A, 1			; Select blue colour
-	OUT (&FE), A	; Set border colour from A
+    LD A, 1         ; Select blue colour
+    OUT (&FE), A    ; Set border colour from A
 \end{tcblisting}
 
 Note: border colour is set the same way regardless of graphics mode used. However, some Layer 2 modes and Tileset may partially or fully cover the border, effectively making it invisible to the user.
@@ -217,22 +217,22 @@ As mentioned, ULA uses 16K bank 5 by default to determine what to show on the sc
 Note: \PortTextXRef{7FFD} only controls which of the two possible banks is being used by ULA, but it doesn't map the bank into any of the memory slots. This needs to be done by one of the paging modes as described in the Memory Map and Paging chapter, section \XRef{zx_next_memorypaging}. Using MMU, we could do something like:
 
 \begin{tcblisting}{}
-	LD HL, &5800        ; we'll be swapping colours
+    LD HL, &5800        ; we'll be swapping colours
 
-	NEXTREG &52, 10     ; swap first half of 16K bank 5 to 8K slot 2
-	LD A, %00000000     ; paper=black, ink=black
-	LD (HL), A          ; write data to screen (immediately visible)
-	
-	NEXTREG &52, 14     ; swap first half of 16K bank 7 to 8K slot 2
-	LD A, %00000101     ; paper=black, ink=cyan
-	LD (HL), A          ; write to 16K bank 7 (not visible)
-	
-	LD BC, &7FFD        ; prepare port for changing layers
-	LD A, %00001000     ; activate shadow layer
-	OUT (C), A          ; top left char now has black background
-	
-	LD A, %00000000     ; deactivate shadow layer
-	OUT (C), A          ; top left char now has cyan background
+    NEXTREG &52, 10     ; swap first half of 16K bank 5 to 8K slot 2
+    LD A, %00000000     ; paper=black, ink=black
+    LD (HL), A          ; write data to screen (immediately visible)
+    
+    NEXTREG &52, 14     ; swap first half of 16K bank 7 to 8K slot 2
+    LD A, %00000101     ; paper=black, ink=cyan
+    LD (HL), A          ; write to 16K bank 7 (not visible)
+    
+    LD BC, &7FFD        ; prepare port for changing layers
+    LD A, %00001000     ; activate shadow layer
+    OUT (C), A          ; top left char now has black background
+
+    LD A, %00000000     ; deactivate shadow layer
+    OUT (C), A          ; top left char now has cyan background
 \end{tcblisting}
 
 Remember: 16K bank 7 corresponds to 8K banks 14 and 15. And because pixel and attributes combined fit within single 8K, only single bank needs to be swapped in.

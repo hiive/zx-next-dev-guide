@@ -466,9 +466,9 @@ The undocumented {\tt DDCB} instructions store the result (if any) of the operat
 The documented {\tt DDCB0106} is {\tt RLC (IX+\$01)}. So, clear the lower three bits ({\tt DDCB0100}) and something is done to register {\tt B}. The result of the {\tt RLC} (which is stored in {\tt (IX+\$01)}) is now also stored in register {\tt B}. Effectively, it does the following:
 
 \begin{tcblisting}{}
-	LD B, (IX+&01)
-	RLC B
-	LD (IX+&01), B
+LD B, (IX+&01)
+RLC B
+LD (IX+&01), B
 \end{tcblisting}
 
 So you get double value for money. The result is stored in {\tt B} and {\tt (IX+\$01)}. The most common notation is: {\tt RLC (IX+\$01), B}
@@ -476,8 +476,8 @@ So you get double value for money. The result is stored in {\tt B} and {\tt (IX+
 I've once seen this notation:
 
 \begin{tcblisting}{}
-	RLC (IX+&01)
-	LD B, (IX+&01)
+RLC (IX+&01)
+LD B, (IX+&01)
 \end{tcblisting}
 
 That's not correct: {\tt B} contains the rotated value, even if {\tt (IX+\$01)} points to ROM.
@@ -870,9 +870,9 @@ At the end of a maskable interrupt, the interrupts should be enabled again. You 
 
 \begin{tcblisting}{}
 InterruptRoutine:
-	...
-	EI
-	RETI or RET
+...
+EI
+RETI or RET
 \end{tcblisting}
 
 Note a fact about {\tt EI}: a maskable interrupt isn't accepted directly after it, so the next opportunity for an interrupt is after the {\tt RETI}. This is very useful; if the \NoLinkChipPinLabel{INT} line is still low, an interrupt is accepted again.  If this happens a lot and the interrupt is generated before the {\tt RETI}, the stack could overflow (since the routine would be called again and again). But this property of {\tt EI} prevents this.
@@ -919,15 +919,15 @@ During the execution of instructions, interrupts won't be accepted. Only {\em be
 Directly after an {\tt EI} or {\tt DI} instruction, interrupts aren't accepted. They're accepted again after the instruction after the {\tt EI} ({\tt RET} in the following example). So for example, look at this MSX2 routine that reads a scanline from the keyboard:
 
 \begin{tcblisting}{}
-	LD C, A
-	DI
-	IN A, (&AA)
-	AND &F0
-	ADD A, C
-	OUT (&AA), A
-	EI
-	IN A, (&A9)
-	RET
+LD C, A
+DI
+IN A, (&AA)
+AND &F0
+ADD A, C
+OUT (&AA), A
+EI
+IN A, (&A9)
+RET
 \end{tcblisting}
 
 You can assume that there never is an interrupt after the {\tt EI}, before the {\tt IN A,(\$A9)} - which would be a problem because the MSX interrupt routine reads the keyboard too.
@@ -935,13 +935,13 @@ You can assume that there never is an interrupt after the {\tt EI}, before the {
 Using this feature of {\tt EI}, it is possible to check whether it is true that interrupts are never accepted during instructions:
 
 \begin{tcblisting}{}
-	DI
-	|make sure interrupt is active|
-	EI
-	|insert instruction to test|
+DI
+|make sure interrupt is active|
+EI
+|insert instruction to test|
 InterruptRoutine:
-	|store PC where interrupt was accepted|
-	RET
+|store PC where interrupt was accepted|
+RET
 \end{tcblisting}
 
 And yes, for all instructions, including the prefixed ones, interrupts are never accepted during an instruction. Only after the tested instruction. Remember that block instructions simply re-execute themselves (by decreasing the PC with 2) so an interrupt is accepted after each iteration.

@@ -358,16 +358,16 @@ While not absolutely required, it's good practice to store original slot values 
 Example of writing 10 bytes ({\tt 00 01 02 03 04 05 06 07 08 09}) to 8K bank 30 swapped in to slot 5. As mentioned before, this will effectively write to absolute memory \MemAddr{7C000}-\MemAddr{7C009}:
 
 \begin{tcblisting}{}
-	NEXTREG &55, 30     ; swap bank 30 to slot 5
+    NEXTREG &55, 30     ; swap bank 30 to slot 5
 
-	LD DE, &A000        ; slot 5 starts at &A000
-	LD A, 0             ; starting data to write
-	LD B, 10            ; number of bytes to write
+    LD DE, &A000        ; slot 5 starts at &A000
+    LD A, 0             ; starting data to write
+    LD B, 10            ; number of bytes to write
 next:
-	LD (DE), A          ; write next byte
-	INC A               ; increment source byte
-	INC DE              ; increment destination location
-	DJNZ next
+    LD (DE), A          ; write next byte
+    INC A               ; increment source byte
+    INC DE              ; increment destination location
+    DJNZ next
 \end{tcblisting}
 
 % note: since both ports are declared on the same page, we group the page

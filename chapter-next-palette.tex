@@ -37,20 +37,20 @@ Here's a reusable subroutine for copying {\tt B} number of colours stored as a c
 
 \begin{tcblisting}{}
 Copy8BitPalette:
-	LD A, (HL)                ; Load RRRGGGBB into A
-	INC HL                    ; Increment to next colour entry
-	NEXTREG &41, A            ; Send colour data to Next HW
-	DJNZ Copy8BitPalette      ; Repeat until B=0
+    LD A, (HL)                ; Load RRRGGGBB into A
+    INC HL                    ; Increment to next colour entry
+    NEXTREG &41, A            ; Send colour data to Next HW
+    DJNZ Copy8BitPalette      ; Repeat until B=0
 \end{tcblisting}
 
 And we'd call the subroutine with something like:
 
 \begin{tcblisting}{}
-	NEXTREG &43, %00010000    ; Auto increment, Layer 2 first palette for read/write
-	NEXTREG &40, 0            ; Start copying into index 0
-	LD HL, palette            ; Address to copy RRRGGGBB values from
-	LD B, 255                 ; Copy 255 colours
-	CALL Copy8BitPalette
+    NEXTREG &43, %00010000    ; Auto increment, Layer 2 first palette for read/write
+    NEXTREG &40, 0            ; Start copying into index 0
+    LD HL, palette            ; Address to copy RRRGGGBB values from
+    LD B, 255                 ; Copy 255 colours
+    CALL Copy8BitPalette
 \end{tcblisting}
 
 Note: we could also use DMA to transfer all the bytes. I won't show it here, but feel free to implement it as an excercise - see section \ref{zx_next_dma} for details on programming the DMA.
@@ -62,13 +62,13 @@ With 9 bits per colour, each RGB component uses full 3 bits, thus greatly increa
 
 \begin{tcblisting}{}
 Copy9BitPalette:
-	LD A, (HL)                ; Load RRRGGGBB into A
-	INC HL                    ; Increment to next byte
-	NEXTREG &44, A            ; Send colour data to Next HW
-	LD A, (HL)                ; Load remaining byte with LSB of B component into A
-	INC HL                    ; Increment to next colour entry
-	NEXTREG &44, A            ; Send colour data to Next HW and increment index
-	DJNZ Copy9BitPalette      ; Repeat until B=0
+    LD A, (HL)                ; Load RRRGGGBB into A
+    INC HL                    ; Increment to next byte
+    NEXTREG &44, A            ; Send colour data to Next HW
+    LD A, (HL)                ; Load remaining byte with LSB of B component into A
+    INC HL                    ; Increment to next colour entry
+    NEXTREG &44, A            ; Send colour data to Next HW and increment index
+    DJNZ Copy9BitPalette      ; Repeat until B=0
 \end{tcblisting}
 
 Note: subroutine requires that colours are stored in 2 bytes with first containing {\tt RRRGGGBB} part and second least significant bit of blue. Which is how typically drawing programs store a 9-bit palette anyways. The code for calling this subroutine is exactly the same as for the 8-bit colours above.

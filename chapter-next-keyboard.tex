@@ -25,24 +25,24 @@ ZX Spectrum uses 8$\times$5 matrix for reading keyboard status. This means 40 di
 Example for checking if {\tt P} or {\tt I} is pressed:
 	
 \begin{tcblisting}{}
-	LD BC, &DFFE     ; We want to read keys..... YUIOP
-	IN A, (C)        ; A holds values in bits... 43210
+    LD BC, &DFFE     ; We want to read keys..... YUIOP
+    IN A, (C)        ; A holds values in bits... 43210
 checkP:
-	BIT 0, A         ; test bit 0 of A (P key)
-	JR NZ checkI     ; if bit0=1, P not pressed
-	...              ; P is pressed
+    BIT 0, A         ; test bit 0 of A (P key)
+    JR NZ checkI     ; if bit0=1, P not pressed
+    ...              ; P is pressed
 checkI:
-	BIT 2, A         ; test bit 2 of A (I key)
-	JR NZ continue   ; if bit2=1, I not pressed
-	...              ; I is pressed
+    BIT 2, A         ; test bit 2 of A (I key)
+    JR NZ continue   ; if bit2=1, I not pressed
+    ...              ; I is pressed
 continue:
 \end{tcblisting}
 
 As mentioned in Ports chapter, section \XRef{zx_next_ports_examples}, we can slightly improve performance if we replace first two lines with:
 
 \begin{tcblisting}{}
-	LD A, &DF
-	IN (&FE)
+    LD A, &DF
+    IN (&FE)
 \end{tcblisting}
 
 Reading the port in first example requires 22 t-states (10+12) vs. 18 (7+11). The difference is small, but it can add up as typically keyboard is read multiple times per frame.

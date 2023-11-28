@@ -254,16 +254,16 @@ Specific features of the Next are controlled via these register numbers, accesse
 When writing to one of the lower 256 ports, {\tt OUT (n),A} instruction is used. For example to write the value of {\tt 43} to peripheral device mapped to port \MemAddr{15}:
 
 \begin{tcblisting}{}
-	LD A, 43            ; we want to write 43
-	OUT (&15), A        ; writes value of A to port &15
+    LD A, 43            ; we want to write 43
+    OUT (&15), A        ; writes value of A to port &15
 \end{tcblisting}
 
 To write using full 16-bit address, {\tt OUT (C),r} instruction is used instead. Example of writing a byte to serial port using \PortText{133B}:
 
 \begin{tcblisting}{}
-	LD A, 42            ; we want to write 42
-	LD BC, &133B        ; we want to write to port &133B
-	OUT (C), A
+    LD A, 42            ; we want to write 42
+    LD BC, &133B        ; we want to write to port &133B
+    OUT (C), A
 \end{tcblisting}
 
 The difference between the two speed-wise is tangible: first example requires only 18 t-states (7+11) while second 29 (7+10+12).
@@ -274,8 +274,8 @@ The difference between the two speed-wise is tangible: first example requires on
 Reading also uses the same approach as on original Spectrums - for the lower 256 ports {\tt IN A,(n)} is used. For example reading a byte from port \MemAddr{15}:
 
 \begin{tcblisting}{}
-	LD A, 0       ; perhaps not strictly required, but good idea
-	IN A, (&15)   ; read byte from port &15 to A
+    LD A, 0       ; perhaps not strictly required, but good idea
+    IN A, (&15)   ; read byte from port &15 to A
 \end{tcblisting}
 
 Note how the accumulator {\tt A} is cleared before accessing the port. With {\tt IN A,(n)}, the 16-bit address is composed from {\tt A} forming high byte and {\tt n} low byte.
@@ -286,14 +286,14 @@ Let's see how we can use this for reading from 16-bit ports - we have two option
 	\begin{tcblisting}{right skip=1em}
 LD BC, &143B   ; read &143B port
 IN A, (C)      ; read byte to A
-	\end{tcblisting}
+    \end{tcblisting}
 
 	\columnbreak
 
 	\begin{tcblisting}{}
 LD A, &14      ; high byte
 IN A, (&3B)    ; read byte to A
-	\end{tcblisting}
+    \end{tcblisting}
 \end{multicols}
 
 \vspace*{-0.7em} % multicols creates additional space below, we want next text to be closer up...
@@ -318,19 +318,19 @@ OUT (C), A
 LD A, 5        ; write 5
 LD BC, &253B   ; to port &254B
 OUT (C), A
-	\end{tcblisting}
+    \end{tcblisting}
 
 	\columnbreak
 
-	\begin{tcblisting}{}
+    \begin{tcblisting}{}
 LD A, &16      ; register &16
 LD BC, &243B   ; port &243B
 OUT (C), A
 
 LD A, 5        ; write 5
 INC B          ; to port &253B
-OUT (C), A	
-	\end{tcblisting}
+OUT (C), A
+    \end{tcblisting}
 
 \end{multicols}
 
@@ -345,13 +345,13 @@ However, we can do better. Much better, in fact, using Next {\tt NEXTREG} instru
 	\begin{tcblisting}{{right skip=1em}}
 LD A, 5          ; write 5
 NEXTREG &16, A  ; to reg &16
-	\end{tcblisting}
+    \end{tcblisting}
 
 	\columnbreak
 
 	\begin{tcblisting}{}
 NEXTREG &16, 5 ; write 5 to reg &16
-	\end{tcblisting}
+    \end{tcblisting}
 \end{multicols}
 
 \vspace*{-0.7em} % multicols creates additional space below, we want next text to be closer up...
@@ -371,7 +371,7 @@ OUT (C), A     ; set port
 
 LD BC, &253B   ; port &253B
 IN A, (C)      ; read to A
-	\end{tcblisting}
+    \end{tcblisting}
 
 	\columnbreak
 	
@@ -382,7 +382,7 @@ OUT (C), A     ; set port
 
 INC B          ; port &253B
 IN A, (C)      ; read to A
-	\end{tcblisting}
+    \end{tcblisting}
 		
 \end{multicols}
 

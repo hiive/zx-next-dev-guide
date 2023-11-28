@@ -167,48 +167,48 @@ Example of filling the screen with a vertical rainbow:
 START_16K_BANK  = 9
 START_8K_BANK   = START_16K_BANK*2
 
-	; Enable Layer 2
-	LD BC, &123B
-	LD A, 2
-	OUT (C), A
-	
-	; Setup starting Layer2 16K bank
-	NEXTREG &12, START_16K_BANK
-	
-	LD D, 0                   ; D=Y, start at top of the screen
-	
+    ; Enable Layer 2
+    LD BC, &123B
+    LD A, 2
+    OUT (C), A
+    
+    ; Setup starting Layer2 16K bank
+    NEXTREG &12, START_16K_BANK
+    
+    LD D, 0                   ; D=Y, start at top of the screen
+    
 nextY:
-	; Calculate bank number and swap it in
-	LD A, D                   ; Copy current Y to A
-	AND %11100000             ; 32100000 (3 MSBs = bank number)
-	RLCA                      ; 21000003
-	RLCA                      ; 10000032
-	RLCA                      ; 00000321
-	ADD A, START_8K_BANK      ; A=bank number to swap in
-	NEXTREG &56, A            ; Swap bank to slot 6 (&C000-&DFFF)
-	
-	; Convert DE (yx) to screen memory location starting at &C000
-	PUSH DE                   ; (DE) will be changed to bank offset
-	LD A, D                   ; Copy current Y to A
-	AND %00011111             ; Discard bank number
-	OR &C0                    ; Screen starts at &C000
-	LD D, A                   ; D=high byte for &C000 screen memory
+    ; Calculate bank number and swap it in
+    LD A, D                   ; Copy current Y to A
+    AND %11100000             ; 32100000 (3 MSBs = bank number)
+    RLCA                      ; 21000003
+    RLCA                      ; 10000032
+    RLCA                      ; 00000321
+    ADD A, START_8K_BANK      ; A=bank number to swap in
+    NEXTREG &56, A            ; Swap bank to slot 6 (&C000-&DFFF)
+    
+    ; Convert DE (yx) to screen memory location starting at &C000
+    PUSH DE                   ; (DE) will be changed to bank offset
+    LD A, D                   ; Copy current Y to A
+    AND %00011111             ; Discard bank number
+    OR &C0                    ; Screen starts at &C000
+    LD D, A                   ; D=high byte for &C000 screen memory
 
-	; Loop X through 0..255; we don't have to deal with bank swapping
-	; here because it only occurs when changing Y
-	LD E, 0
+    ; Loop X through 0..255; we don't have to deal with bank swapping
+    ; here because it only occurs when changing Y
+    LD E, 0
 nextX:
-	LD A, E                   ; A=current X
-	LD (DE), A                ; Use X as colour index
-	INC E                     ; Increment to next X
-	JR NZ, nextX              ; Repeat until E rolls over
-	
-	; Continue with next line or exit
-	POP DE                    ; Restore DE to coordinates
-	INC D                     ; Increment to next Y
-	LD A, D                   ; A=current Y
-	CP 192                    ; Did we just complete last line?
-	JP C, nextY               ; No, continue with next linee
+    LD A, E                   ; A=current X
+    LD (DE), A                ; Use X as colour index
+    INC E                     ; Increment to next X
+    JR NZ, nextX              ; Repeat until E rolls over
+    
+    ; Continue with next line or exit
+    POP DE                    ; Restore DE to coordinates
+    INC D                     ; Increment to next Y
+    LD A, D                   ; A=current Y
+    CP 192                    ; Did we just complete last line?
+    JP C, nextY               ; No, continue with next linee
 \end{tcblisting}
 
 Worth noting: MMU page 6 (next register \MemAddr{56}) covers memory \MemAddr{C000} - \MemAddr{DFFF}. As we swap different 8K banks there, we're effectively changing 8K banks that are readable and writable at those memory addresses. That's why we {\tt OR \$C0} in line 24; we need to convert zero based address to \MemAddr{C000} based.
@@ -322,51 +322,51 @@ BANK_8K_SIZE    = 8192
 NUM_BANKS       = RESOLUTION_X * RESOLUTION_Y / BANK_8K_SIZE
 BANK_X          = BANK_8K_SIZE / RESOLUTION_Y
 
-	; Enable Layer 2
-	LD BC, &123B
-	LD A, 2
-	OUT (C), A
+    ; Enable Layer 2
+    LD BC, &123B
+    LD A, 2
+    OUT (C), A
 
-	; Setup starting Layer2 16K bank
-	NEXTREG &12, START_16K_BANK
-	NEXTREG &70, %00010000    ; 320x256 256 colour mode
+    ; Setup starting Layer2 16K bank
+    NEXTREG &12, START_16K_BANK
+    NEXTREG &70, %00010000    ; 320x256 256 colour mode
 
-	; Setup window clip for 320x256 resolution
-	NEXTREG &1C, 1            ; Reset Layer 2 clip window reg index
-	NEXTREG &18, 0            ; X1; X2 next line
-	NEXTREG &18, RESOLUTION_X / 2 - 1
-	NEXTREG &18, 0            ; Y1; Y2 next line
-	NEXTREG &18, RESOLUTION_Y - 1
+    ; Setup window clip for 320x256 resolution
+    NEXTREG &1C, 1            ; Reset Layer 2 clip window reg index
+    NEXTREG &18, 0            ; X1; X2 next line
+    NEXTREG &18, RESOLUTION_X / 2 - 1
+    NEXTREG &18, 0            ; Y1; Y2 next line
+    NEXTREG &18, RESOLUTION_Y - 1
 
-	LD B, START_8K_BANK       ; Bank number
-	LD H, 0                   ; Colour index
+    LD B, START_8K_BANK       ; Bank number
+    LD H, 0                   ; Colour index
 nextBank:
-	; Swap to next bank, exit once all 5 are done
-	LD A, B                   ; Copy current bank number to A
-	NEXTREG &56, A            ; Swap bank to slot 6 (&C000-&DFFF)
+    ; Swap to next bank, exit once all 5 are done
+    LD A, B                   ; Copy current bank number to A
+    NEXTREG &56, A            ; Swap bank to slot 6 (&C000-&DFFF)
 
-	; Fill in current bank
-	LD DE, &C000              ; Prepare starting address
+    ; Fill in current bank
+    LD DE, &C000              ; Prepare starting address
 nextY:
-	; Fill in 256 pixels of current line
-	LD A, H                   ; Copy colour index to A
-	LD (DE), A                ; Write colour index into memory
-	INC E                     ; Increment Y
-	JR NZ, nextY              ; Continue with next Y until we wrap to next X
+    ; Fill in 256 pixels of current line
+    LD A, H                   ; Copy colour index to A
+    LD (DE), A                ; Write colour index into memory
+    INC E                     ; Increment Y
+    JR NZ, nextY              ; Continue with next Y until we wrap to next X
 
-	; Prepare for next line until bank is full
-	INC H                     ; Increment colour
-	INC D                     ; Increment X
-	LD A, D                   ; Copy X to A
-	AND %00111111             ; Clear &C0 to get pure X coordinate
-	CP BANK_X                 ; Did we reach next bank?
-	JP NZ, nextY              ; No, continue with next Y
+    ; Prepare for next line until bank is full
+    INC H                     ; Increment colour
+    INC D                     ; Increment X
+    LD A, D                   ; Copy X to A
+    AND %00111111             ; Clear &C0 to get pure X coordinate
+    CP BANK_X                 ; Did we reach next bank?
+    JP NZ, nextY              ; No, continue with next Y
 
-	; Prepare for next bank
-	INC B                     ; Increment to next bank
-	LD A, B                   ; Copy bank to A
-	CP START_8K_BANK+NUM_BANKS; Did we fill last bank?
-	JP NZ, nextBank           ; No, proceed with next bank
+    ; Prepare for next bank
+    INC B                     ; Increment to next bank
+    LD A, B                   ; Copy bank to A
+    CP START_8K_BANK+NUM_BANKS; Did we fill last bank?
+    JP NZ, nextBank           ; No, proceed with next bank
 \end{tcblisting}
 
 You can find fully working example in companion code on GitHub in folder {\tt layer2-320x256}.
@@ -477,50 +477,50 @@ BANK_8K_SIZE    = 8192
 NUM_BANKS       = RESOLUTION_X * RESOLUTION_Y / BANK_8K_SIZE / 2
 BANK_X          = BANK_8K_SIZE / RESOLUTION_Y
 
-	; Enable Layer 2
-	LD BC, &123B
-	LD A, 2
-	OUT (C), A
+    ; Enable Layer 2
+    LD BC, &123B
+    LD A, 2
+    OUT (C), A
 
-	; Setup starting Layer2 16K bank
-	NEXTREG &12, START_16K_BANK
-	NEXTREG &70, %00100000    ; 640x256 16 colour mode
+    ; Setup starting Layer2 16K bank
+    NEXTREG &12, START_16K_BANK
+    NEXTREG &70, %00100000    ; 640x256 16 colour mode
 
-	NEXTREG &1C, 1            ; Reset Layer 2 clip window reg index
-	NEXTREG &18, 0
-	NEXTREG &18, RESOLUTION_X / 4 - 1
-	NEXTREG &18, 0
-	NEXTREG &18, RESOLUTION_Y - 1
+    NEXTREG &1C, 1            ; Reset Layer 2 clip window reg index
+    NEXTREG &18, 0
+    NEXTREG &18, RESOLUTION_X / 4 - 1
+    NEXTREG &18, 0
+    NEXTREG &18, RESOLUTION_Y - 1
 
-	LD B, START_8K_BANK       ; Bank number
-	LD H, 0                   ; Colour index for 2 pixels
+    LD B, START_8K_BANK       ; Bank number
+    LD H, 0                   ; Colour index for 2 pixels
 nextBank:
-	; Swap to next bank, exit once all 5 are done
-	LD A, B                   ; Copy current bank number to A
-	NEXTREG &56, A            ; Swap bank to slot 6 (&C000-&DFFF)
+    ; Swap to next bank, exit once all 5 are done
+    LD A, B                   ; Copy current bank number to A
+    NEXTREG &56, A            ; Swap bank to slot 6 (&C000-&DFFF)
 
-	; Fill in current bank
-	LD DE, &C000              ; Prepare starting address
+    ; Fill in current bank
+    LD DE, &C000              ; Prepare starting address
 nextY:
-	; Fill in 256 pixels of current line
-	LD A, H                   ; Copy colour indexes for 2 pixels to A
-	LD (DE), A                ; Write colour indexes into memory
-	INC E                     ; Increment Y
-	JR NZ, nextY              ; Continue with next Y until we wrap to next X
+    ; Fill in 256 pixels of current line
+    LD A, H                   ; Copy colour indexes for 2 pixels to A
+    LD (DE), A                ; Write colour indexes into memory
+    INC E                     ; Increment Y
+    JR NZ, nextY              ; Continue with next Y until we wrap to next X
 
-	; Prepare for next line until bank is full
-	INC H                     ; Increment colour index for both colours
-	INC D                     ; Increment X
-	LD A, D                   ; Copy X to A
-	AND %00111111             ; Clear &C0 to get pure X coordinate
-	CP BANK_X                 ; Did we reach next bank?
-	JP NZ, nextY              ; No, continue with next Y
+    ; Prepare for next line until bank is full
+    INC H                     ; Increment colour index for both colours
+    INC D                     ; Increment X
+    LD A, D                   ; Copy X to A
+    AND %00111111             ; Clear &C0 to get pure X coordinate
+    CP BANK_X                 ; Did we reach next bank?
+    JP NZ, nextY              ; No, continue with next Y
 
-	; Prepare for next bank
-	INC B                     ; Increment to next bank
-	LD A, B                   ; Copy bank to A
-	CP START_8K_BANK+NUM_BANKS; Did we fill last bank?
-	JP NZ, nextBank           ; No, proceed with next bank
+    ; Prepare for next bank
+    INC B                     ; Increment to next bank
+    LD A, B                   ; Copy bank to A
+    CP START_8K_BANK+NUM_BANKS; Did we fill last bank?
+    JP NZ, nextBank           ; No, proceed with next bank
 \end{tcblisting}
 
 You can find fully working example in companion code on GitHub in folder {\tt layer2-640x256}.

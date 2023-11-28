@@ -114,15 +114,15 @@ Regardless of the editor, we need 3 pieces of data: palette, tile definitions an
 
 \begin{tcblisting}{}
 tilemap:
-	INCBIN "tiles.map"
+    INCBIN "tiles.map"
 tilemapLength = &-tilemap
 
 tiles:
-	INCBIN "tiles.spr"
+    INCBIN "tiles.spr"
 tilesLength = &-tiles
 
 palette:
-	INCBIN "tiles.pal"
+    INCBIN "tiles.pal"
 paletteLength = &-palette
 \end{tcblisting}
 
@@ -136,13 +136,13 @@ START_OF_TILES      = &6600     ; Just after 40x32 tilemap
 OFFSET_OF_MAP       = (START_OF_TILEMAP - START_OF_BANK_5) >> 8
 OFFSET_OF_TILES     = (START_OF_TILES - START_OF_BANK_5) >> 8
 
-	; Enable tilemap mode
-	NEXTREG &6B, %10100001       ; 40x32, 8-bit entries
-	NEXTREG &6C, %00000000       ; palette offset, visuals
+    ; Enable tilemap mode
+    NEXTREG &6B, %10100001       ; 40x32, 8-bit entries
+    NEXTREG &6C, %00000000       ; palette offset, visuals
 
-	; Tell hardware where to find tiles
-	NEXTREG &6E, OFFSET_OF_MAP   ; MSB of tilemap in bank 5
-	NEXTREG &6F, OFFSET_OF_TILES ; MSB of tilemap definitions
+    ; Tell hardware where to find tiles
+    NEXTREG &6E, OFFSET_OF_MAP   ; MSB of tilemap in bank 5
+    NEXTREG &6F, OFFSET_OF_TILES ; MSB of tilemap definitions
 \end{tcblisting}
 
 Above code uses couple neat preprocessing tricks to automatically calculate MSB for tilemap and tile definitions offsets. The rest is simply setting up desired behaviour using Next registers.
@@ -151,43 +151,43 @@ Above code uses couple neat preprocessing tricks to automatically calculate MSB 
 The only remaining piece is to actually copy all the data to expected memory locations:
 
 \begin{tcblisting}{}
-	; Setup tilemap palette
-	NEXTREG &43, %00110000       ; Auto increment, select first tilemap palette
+    ; Setup tilemap palette
+    NEXTREG &43, %00110000       ; Auto increment, select first tilemap palette
 
-	; Copy palette
-	LD HL, palette               ; Address of palette data in memory
-	LD B, 16                     ; Copy 16 colours
-	CALL Copy8BitPalette         ; Call routine for copying
+    ; Copy palette
+    LD HL, palette               ; Address of palette data in memory
+    LD B, 16                     ; Copy 16 colours
+    CALL Copy8BitPalette         ; Call routine for copying
 
-	; Copy tile definitions to expected memory
-	LD HL, tiles                 ; Address of tiles in memory
-	LD BC, tilesLength           ; Number of bytes to copy
-	CALL CopyTileDefinitions     ; Copy all tiles data
+    ; Copy tile definitions to expected memory
+    LD HL, tiles                 ; Address of tiles in memory
+    LD BC, tilesLength           ; Number of bytes to copy
+    CALL CopyTileDefinitions     ; Copy all tiles data
 
-	; Copy tilemap to expected memory
-	LD HL, tilemap               ; Addreess of tilemap in memory
-	CALL CopyTileMap40x32        ; Copy 40x32 tilemaps
+    ; Copy tilemap to expected memory
+    LD HL, tilemap               ; Addreess of tilemap in memory
+    CALL CopyTileMap40x32        ; Copy 40x32 tilemaps
 \end{tcblisting}
 
 We already know {\tt Copy8BitPalette} routine from Layer 2 chapter, the other two are straightforward {\tt LDIR} loops:
 
 \begin{tcblisting}{}
 CopyTileDefinitions:
-	LD DE, START_OF_TILES
-	LDIR
-	RET
+    LD DE, START_OF_TILES
+    LDIR
+    RET
 
 CopyTileMap40x32:
-	LD BC, 40*32		; This variant always loads 40x32
-	JR copyTileMap
+    LD BC, 40*32        ; This variant always loads 40x32
+    JR copyTileMap
 
 CopyTileMap80x32:
-	LD BC, 80*32		; This variant always loads 80x32
+    LD BC, 80*32        ; This variant always loads 80x32
 
 CopyTileMap:
-	LD DE, START_OF_TILEMAP
-	LDIR
-	RET
+    LD DE, START_OF_TILEMAP
+    LDIR
+    RET
 \end{tcblisting}
 
 You can find fully working example in companion code on GitHub in folder {\tt tilemap}.
